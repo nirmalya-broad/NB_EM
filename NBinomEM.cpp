@@ -9,6 +9,9 @@
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/math/special_functions/digamma.hpp>
 
+#include "misc.hpp"
+
+
 namespace po = boost::program_options;
 
 // This would optimize a mixture of two three densities; We shall derive the 
@@ -82,11 +85,15 @@ void NBinomEMC::read_infile() {
     std::string line1;     
     long temp_num1;   
     while (std::getline(inf, line1)) {
-        temp_num1 = std::stol(line1);
+
+        std::vector<std::string> lparts = split(line1, '\t');
+        std::string gap_str = lparts[2];
+        temp_num1 = std::stol(gap_str);
         sample_vec.push_back(temp_num1);
     } 
     
     sample_count = sample_vec.size();
+    std::cout << "sample_count: " << std::to_string(sample_count) << "\n";
 }
 
 double NBinomEMC::get_mem_prob(int density_ind, int sample_ind) {
