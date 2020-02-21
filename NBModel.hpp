@@ -9,7 +9,6 @@
 #include <boost/math/special_functions/digamma.hpp>
 
 #include <dlib/optimization.h>
-#include <dlib/global_optimization.h>
 
 
 #include "misc.hpp" 
@@ -17,10 +16,10 @@
 typedef dlib::matrix<double,0,1> column_vector;
 using namespace std::placeholders;
 
-class NBSampleC {
+class NBModelC {
 
     public:
-        NBSampleC (std::vector<long> lvec) : sample_vec(lvec){
+        NBModelC (std::vector<long> lvec) : sample_vec(lvec){
 
         }
 
@@ -87,8 +86,8 @@ class NBSampleC {
 
         double find_r_val () {
         
-            auto value_funct = std::bind(&NBSampleC::value, this, _1);
-            auto gradient_funct = std::bind(&NBSampleC::gradient, this, _1);
+            auto value_funct = std::bind(&NBModelC::value, this, _1);
+            auto gradient_funct = std::bind(&NBModelC::gradient, this, _1);
             double r_val_0 = get_r_val_0();
             column_vector starting_point = {r_val_0};
             const column_vector x_lower1 = {0.001};
@@ -104,6 +103,7 @@ class NBSampleC {
             double r_est = starting_point(0);
             return r_est;
         }
+
 
     private:
         std::vector<long> sample_vec;
