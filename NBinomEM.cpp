@@ -3,6 +3,7 @@
 #include <cmath>
 #include <string>
 #include <fstream>
+#include <algorithm>
 
 #include <boost/program_options.hpp>
 
@@ -63,6 +64,9 @@ class NBinomEMC {
         double get_mem_prob(int density_ind, int sample_ind);
         void set_mem_prob(double mem_prob, int density_ind, int sample_ind);
 
+        double get_nb_ll(const column_vector &m);
+        double get_nb_ll_derivative(const column_vector &m);
+
         double get_mix_ll_by_comp1(const column_vector& m);
         double get_mix_ll_by_comp2(const column_vector& m);
 
@@ -105,6 +109,133 @@ double NBinomEMC::get_LL() {
 
     return (ll);
 }
+
+std::vector<long> NBinomEMC::get_sub_vec(std::vector<long> ori_vec, 
+        int start_pos, int end_pos) {
+
+    std::vector<long> dest_vec;
+
+    for (for j = start_pos; j <= end_pos; j++) {
+        dest_vec.push_back(ori_vec[j]);
+    return (dest_vec);
+}
+
+double NBinomEMC::get_nb_ll(const column_vector &m) {
+
+    double lr_val = m(0);
+
+    auto n = sample_vec.size();
+    double lmean = 0.0;
+    if ( n != 0) {
+        lmean = accumulate(sample_vec.begin(), sample_vec.end(), 0.0) / n;
+    }
+
+    double total_ll = 0;
+
+    double lpval = lmean / (lmean + lr_val);
+
+    for (int j_ind = 0; j_ind < sample_vec.size(); j_ind) {
+        long xi_val = sample_vec[j_ind];
+
+        lval1 = lgamma(xi_val + r_val) -lgamma(xi_val + 1) -lgamma(r_val) +
+            xi_val * log (lpval) + r_val * log(1 - lpval);
+        total_ll += lval1;
+    }
+
+}
+
+
+double NBinomEMC::get_nb_ll_derivative(const column_vector &m) {
+
+}
+
+
+
+std::map<std::string, double> NBinomEMC::get_NB_params(std::vector<long> 
+    lsample) {
+
+    // Get initial set of values by method of moment as done by MASS R package
+
+    auto n = lsample.size(); 
+    double lmean = 0.0;
+    if ( n != 0) {
+        lmean = accumulate( lsample.begin(), lsample.end(), 0.0) / n; 
+    }
+
+    double lsum = 0;
+    for (int j = 0; j < n; j++) {
+        lsum += pow((lsample[j] - lmean), 2.0);
+    }
+    double lvar = lsum / (n-1);
+
+    double r_val_0 = 0;
+    if (lvar > lmean) {
+        r_val_0 = pow(lmean, 2.0) / (lvar - lmean);
+    } else {
+        r_val_0 = 100;
+    }
+
+    
+    // We now shall get the r_val using optimization.
+    column_vector starting_point = {r_val_0};
+
+    double r_val = find_max_box_constrained(bfgs_search_strategy(),  
+                             objective_delta_stop_strategy(1e-9),  
+                             rosen, rosen_derivative, starting_point, 0.01, 1000); 
+
+}
+
+void NBinomEMC::init_EM_params() {
+
+    // Take the data and make a rough estimate from sample_vec;
+
+    // 1. Get the count of 0
+    // 2. Get the count of less than 500
+
+    int zero_count = 0;
+    int less_500_count = 0;
+    for (long lval1 : sample_vec) {
+        if (0 == lval1) {
+            zero_count++;
+        }
+
+        if (lval1 < 500) {
+            less_500_count++;
+        }
+    }
+
+    double zero_frac_model_0 = 0.9;
+    int model_0_count  = (int) floor(zero_count * zero_frac_model_0);
+    int model_1_count = less_500_count - model_0_count;
+    int model_2_count = sample_vec.size() - (model_0_count + model_1_count);
+
+    std::vector<long> sample_vec_s = sample_vec;
+    std::sort(sample_vec_s.begin(), sample_vec_s.end());
+
+    std::vector<long> sample_model_0 =  get_sub_vec(sample_vec_s, 0, 
+        (model_0_count -1));
+    std::vector<long> sample_model_1 = get_sub_vec(sample_vec_s, model_0_count, 
+        (model_0_count + model_1_count -1));
+    std::vector<long> sample_model_2 = get_sub_vec(sample_vec_s, 
+        (model_0_count + model_1_count), (sample_vec_s.size() -1);
+
+
+    p_vec[0] = (double) model_0_count / sample_vec_s.size();
+
+    // We shall get the p_val and r_val for model_1 and model_2 by doing
+    // another EM?
+
+    std::map<std::string, double> model_1_vals = get_NB_params(sample_model_1);
+    p_vec[1] = model_1_vals["p_val"];
+    r_vec[1] = model_1_vals["r_val"];
+    
+    std::map<std::string, double> model_2_vals = get_NB_params(sample_model_2);
+    p_vec[2] = model_2_vals["p_val"];
+    r_vec[2] = model_2_vals["r_val"];
+    
+
+}
+
 
 void NBinomEMC::do_E_step() {
 
