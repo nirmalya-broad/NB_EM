@@ -2,11 +2,11 @@
 CC = c++
 CFLAGS=-O2 -std=c++14 -g
 
-LOCALPATH=/home/BROAD.MIT.EDU/nirmalya/local/
+LOCALPATH=/home/nirmalya/local/
 
-INC = -I${LOCALPATH}/include
+INC = -I${LOCALPATH}/include  -I${LOCALPATH}/boost/include
 
-PROG_OPT_LIB=${LOCALPATH}/lib/libboost_program_options.a
+PROG_OPT_LIB=${LOCALPATH}/boost/lib/libboost_program_options.a
 LIBDIR=${LOCALPATH}/lib/
 LIBS=$(PROG_OPT_LIB)
 
