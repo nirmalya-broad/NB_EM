@@ -95,7 +95,7 @@ class NBSampleC {
             const column_vector x_upper1 = {1000};
 
 
-            find_max_box_constrained(dlib::lbfgs_search_strategy(10),
+            find_max_box_constrained(dlib::bfgs_search_strategy(),
                                      dlib::objective_delta_stop_strategy(1e-9),
                                      value_funct, gradient_funct, 
                                     starting_point,
