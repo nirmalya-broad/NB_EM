@@ -84,14 +84,18 @@ class NBModelC {
             return r_val_0;
         }
 
-        double find_r_val () {
+        double find_r_val() {
         
+            if (r_val_ready) {
+                return (final_r_val);
+            }
+
             auto value_funct = std::bind(&NBModelC::value, this, _1);
             auto gradient_funct = std::bind(&NBModelC::gradient, this, _1);
             double r_val_0 = get_r_val_0();
             column_vector starting_point = {r_val_0};
-            const column_vector x_lower1 = {0.001};
-            const column_vector x_upper1 = {1000};
+            const column_vector x_lower1 = {0.0000001};
+            const column_vector x_upper1 = {1000000};
 
 
             find_max_box_constrained(dlib::bfgs_search_strategy(),
@@ -100,13 +104,38 @@ class NBModelC {
                                     starting_point,
                                     x_lower1, x_upper1);
 
-            double r_est = starting_point(0);
-            return r_est;
+            final_r_val = starting_point(0);
+            r_val_ready = true;
+            return final_r_val;
+        }
+
+        double find_p_val() {
+
+            if (p_val_ready) {
+                return (final_p_val);
+            }
+            double lrval = find_r_val();
+ 
+            double lmean = do_mean(sample_vec);
+            final_p_val = lmean / (lmean + lrval);
+            p_val_ready = true;
+            return (final_p_val);
+            
+        }
+
+        double find_mean_val() {
+
+            double lmean = do_mean(sample_vec);
+            return (lmean);
         }
 
 
     private:
         std::vector<long> sample_vec;
+        double final_p_val;
+        double final_r_val;
+        bool p_val_ready = false;
+        bool r_val_ready = false;
 
 };
 
