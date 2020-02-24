@@ -44,9 +44,11 @@ class MixtureModelC {
 
         // For our model with one zero density + two NB density; the r_val[0]
         // would be undefined. 
-        std::vector<double> prior_vec;
-        std::vector<double> p_vec;
-        std::vector<double> r_vec;
+        //std::vector<double> prior_vec;
+        double prior_vec[3];
+        double p_vec[3];
+        double r_vec[3];
+        double mean_vec[3];
 
         double CD_LL_value_k(int density_ind, double r_val);
         double CD_LL_gradient_k(int density_ind, double r_val);
@@ -106,7 +108,8 @@ double MixtureModelC::CD_LL_value_k(int density_ind, double r_val) {
 
     double total_ll = 0;
 
-    for (int j_ind = 0; j_ind < sample_vec.size(); j_ind) {
+
+    for (int j_ind = 0; j_ind < sample_vec.size(); j_ind++) {
         long xi_val = sample_vec[j_ind];
 
         double lval1 = lgamma(xi_val + r_val) -lgamma(xi_val + 1) 
@@ -143,7 +146,7 @@ double MixtureModelC::CD_LL_gradient_k(int density_ind, double r_val) {
 
     double total_gradient = 0;
 
-    for (int j_ind = 0; j_ind < sample_vec.size(); j_ind) {
+    for (int j_ind = 0; j_ind < sample_vec.size(); j_ind++) {
         long xi_val = sample_vec[j_ind];
 
         double lval1 = boost::math::digamma(xi_val + r_val) - 
@@ -152,6 +155,9 @@ double MixtureModelC::CD_LL_gradient_k(int density_ind, double r_val) {
         double gradient_xi = lmem_prob * lval1;
         total_gradient += gradient_xi;
     }         
+
+
+    //std::cout << "total_gradient: " << total_gradient << "\n";
 
     return total_gradient;
 }
@@ -279,6 +285,7 @@ void MixtureModelC::init_EM_params() {
     int m0_e = m0_count -1;
     std::vector<long> sample_model0 =  get_sub_vec(sample_vec_s, m0_s, m0_e);
 
+    
     int m1_s = m0_count;
     int m1_e = m0_count + m1_count -1;
     std::vector<long> sample_model1 =  get_sub_vec(sample_vec_s, m1_s, m1_e);
@@ -288,11 +295,13 @@ void MixtureModelC::init_EM_params() {
     std::vector<long> sample_model2 =  get_sub_vec(sample_vec_s, m2_s, m2_e);
 
     int sample_vec_s_size = sample_vec_s.size();
+    std::cout << "sample_vec_s_size: " << sample_vec_s_size << "\n";
 
     prior_vec[0] = (double) m0_count / sample_vec_s_size;
     prior_vec[1] = (double) m1_count / sample_vec_s_size;
     prior_vec[2] = (double) m2_count / sample_vec_s_size;
 
+    std::cout << "Reached here." << "\n";
     std::cout << "model0_prior: " << prior_vec[0] << "\n";
     std::cout << "model1_prior: " << prior_vec[1] << "\n";
     std::cout << "model2_prior: " << prior_vec[2] << "\n";
@@ -300,20 +309,24 @@ void MixtureModelC::init_EM_params() {
 
     // We shall get the p_val and r_val for model_1 and model_2 by doing
     // another EM?
+    
+    std::cout << "sample_model1: " << sample_model1.size() << "\n";
 
     NBModelC model1(sample_model1);
     r_vec[1] = model1.find_r_val();
     p_vec[1] = model1.find_p_val();
-    std::cout << "model1_r_val: " << r_vec[1];
-    std::cout << "model1_p_val: " << p_vec[1];
+    std::cout << "model1_r_val: " << r_vec[1] << "\n";
+    std::cout << "model1_p_val: " << p_vec[1] << "\n";
+    std::cout << "model1_mean_val: " << model1.find_mean_val() << "\n"; 
     std::cout << ".................\n";
 
     NBModelC model2(sample_model2);
     r_vec[2] = model2.find_r_val();
     p_vec[2] = model2.find_p_val(); 
 
-    std::cout << "model2_r_val: " << r_vec[2];
-    std::cout << "model2_p_val: " << p_vec[2];
+    std::cout << "model2_r_val: " << r_vec[2] << "\n";
+    std::cout << "model2_p_val: " << p_vec[2] << "\n";
+    std::cout << "model2_mean_val: " << model2.find_mean_val() << "\n"; 
     std::cout << ".................\n";
 }
 
@@ -472,7 +485,7 @@ void MixtureModelC::main_func() {
 
     double old_ll = get_LL();
 
-    std::cout << "It 0, LL val: " << old_ll;
+    std::cout << "It 0, LL val: " << old_ll << "\n";
 
     // 2. do ... while not converged in terms of likelihood
     int it_count = 0;
@@ -488,12 +501,27 @@ void MixtureModelC::main_func() {
         //4. Calculate the log linklihood
     double new_ll = get_LL();
 
+    double mean_1 = (p_vec[1] * r_vec[1])/(1 - p_vec[1]);
+    double mean_2 = (p_vec[2] * r_vec[2])/(1 - p_vec[2]);
     std::cout << "It " << it_count << ", LL val " << new_ll << "\n";
+    std::cout << "prior_0: " << prior_vec[0] << ", prior_1: " << 
+        prior_vec[1] << ", prior_2: " << prior_vec[2] << "\n";
+    std::cout << "p_val_1: " << p_vec[1] << ", p_val_2: " << p_vec[2] << 
+        ", r_val_1: " << r_vec[1]  << ", r_val_2: " << r_vec[2] << 
+        ", mean_1: " << mean_1 << ", mean_2: " << mean_2 << "\n";
+    
+    std::cout << "................\n";
 
     ll_change = abs(new_ll - old_ll);
     old_ll = new_ll;
 
     } while(ll_change > target_ll_change);
+
+    for (int n = 0; n < sample_vec.size(); n++) {
+        std::cout << sample_vec[n] << ", g_0: " << get_mem_prob(0, n) <<
+            ", g_1: " << get_mem_prob(1, n) << ", g_2: " << 
+            get_mem_prob(2, n) << "\n";
+    }
 
 }
 
