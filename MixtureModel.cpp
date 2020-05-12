@@ -3,6 +3,7 @@
 #include <cmath>
 #include <string>
 #include <fstream>
+#include <limits>
 
 #include <boost/program_options.hpp>
 
@@ -28,6 +29,8 @@ namespace po = boost::program_options;
 
 typedef dlib::matrix<double,0,1> column_vector;
 using namespace std::placeholders;
+
+typedef std::numeric_limits< double > dbl;
 
 class MixtureModelC {
 
@@ -108,12 +111,11 @@ double MixtureModelC::CD_LL_value_k(int density_ind, double r_val) {
 
     double total_ll = 0;
 
-
     for (int j_ind = 0; j_ind < sample_vec.size(); j_ind++) {
         long xi_val = sample_vec[j_ind];
 
         double lval1 = lgamma(xi_val + r_val) -lgamma(xi_val + 1) 
-            - lgamma(r_val) + xi_val * log (lpval) + r_val * log(1-lpval);
+            - lgamma(r_val) + xi_val * log (lpval) + r_val * log(1 - lpval);
         double lval2 = lprior_ln + lval1;
         double lmem_prob = get_mem_prob(density_ind, j_ind);
         double LL_xi = lmem_prob * lval2;
@@ -121,18 +123,6 @@ double MixtureModelC::CD_LL_value_k(int density_ind, double r_val) {
     }         
 
     return total_ll;
-}
-
-double MixtureModelC::CD_LL_value_comp1(const column_vector& m) {
-    const double r_val = m(0);
-    double lval1 = CD_LL_value_k(1, r_val); 
-    return (lval1);
-}
-
-double MixtureModelC::CD_LL_value_comp2(const column_vector& m) {
-    const double r_val = m(0);
-    double lval1 = CD_LL_value_k(2, r_val); 
-    return (lval1);
 }
 
 double MixtureModelC::CD_LL_gradient_k(int density_ind, double r_val) {
@@ -150,16 +140,25 @@ double MixtureModelC::CD_LL_gradient_k(int density_ind, double r_val) {
         long xi_val = sample_vec[j_ind];
 
         double lval1 = boost::math::digamma(xi_val + r_val) - 
-            boost::math::digamma(r_val) + log(1-lpval);
+            boost::math::digamma(r_val) + log(1 - lpval);
         double lmem_prob = get_mem_prob(density_ind, j_ind);
         double gradient_xi = lmem_prob * lval1;
         total_gradient += gradient_xi;
     }         
 
-
-    //std::cout << "total_gradient: " << total_gradient << "\n";
-
     return total_gradient;
+}
+
+double MixtureModelC::CD_LL_value_comp1(const column_vector& m) {
+    const double r_val = m(0);
+    double lval1 = CD_LL_value_k(1, r_val); 
+    return (lval1);
+}
+
+double MixtureModelC::CD_LL_value_comp2(const column_vector& m) {
+    const double r_val = m(0);
+    double lval1 = CD_LL_value_k(2, r_val); 
+    return (lval1);
 }
 
 const column_vector MixtureModelC::CD_LL_gradient_comp1(const column_vector& m) {
@@ -177,14 +176,12 @@ const column_vector MixtureModelC::CD_LL_gradient_comp2(const column_vector& m) 
 }
 
 MixtureModelC::MixtureModelC() { 
-        
 }
 
 void MixtureModelC::free_vars() {
     // Release the resources allocated by new
     delete[]  mem_prob_mat;
 }
-
 
 void MixtureModelC::allocate_resources() {
 
@@ -337,6 +334,8 @@ void MixtureModelC::do_E_step() {
         long xn_val = sample_vec[n];
         double comp_0_L = 0;
 
+        // The component is a point mass concentrated at zero; so it has
+        // LL of 1 at 0 and LL of 0 at other points.
         if (xn_val == 0) {
             comp_0_L = 1;
         } else {
@@ -375,6 +374,8 @@ void MixtureModelC::update_prior_val(int k) {
     prior_vec[k] = N_k / N;
 }
 
+
+// Works only for NB components (comp 1 and comp 2)
 void MixtureModelC::update_p_val(int k) {
     
     double N_k = 0;
@@ -398,19 +399,18 @@ void MixtureModelC::update_p_val(int k) {
 
 void MixtureModelC::do_M_step() {
 
-
     // Estimate the parameters using the BFGS in dlib
     auto value_comp1 = std::bind(&MixtureModelC::CD_LL_value_comp1, this, _1);
     auto gradient_comp1 = std::bind(&MixtureModelC::CD_LL_gradient_comp1, this, _1);
 
     // Get updated r_val for component 1
     
-     const column_vector x_lower1 = {0.0000001};
-     const column_vector x_upper1 = {1000000};
+     const column_vector x_lower1 = {0.00001};
+     const column_vector x_upper1 = {10000};
 
      column_vector starting_point1 = {r_vec[1]};
      find_max_box_constrained(dlib::bfgs_search_strategy(),
-                                     dlib::objective_delta_stop_strategy(1e-9),
+                                     dlib::objective_delta_stop_strategy(1e-6),
                                      value_comp1, gradient_comp1,
                                     starting_point1,
                                     x_lower1, x_upper1);
@@ -423,11 +423,11 @@ void MixtureModelC::do_M_step() {
     
     auto value_comp2 = std::bind(&MixtureModelC::CD_LL_value_comp2, this, _1);
     auto gradient_comp2 = std::bind(&MixtureModelC::CD_LL_gradient_comp2, this, _1);
-     const column_vector x_lower2 = {0.0000001};
-     const column_vector x_upper2 = {1000000};
+     const column_vector x_lower2 = {0.00001};
+     const column_vector x_upper2 = {10000};
      column_vector starting_point2 = {r_vec[2]};
      find_max_box_constrained(dlib::bfgs_search_strategy(),
-                                     dlib::objective_delta_stop_strategy(1e-9),
+                                     dlib::objective_delta_stop_strategy(1e-6),
                                      value_comp2, gradient_comp2,
                                     starting_point2,
                                     x_lower1, x_upper1);
@@ -478,7 +478,8 @@ void MixtureModelC::main_func() {
 
     // Here would be the four main steps.
 
-    double target_ll_change = 1e-9;
+    //double target_ll_change = 1e-9;
+    double target_ll_change = 1e-6;
     double ll_change = 0;
     // 1. initialize the parameters
     init_EM_params();
@@ -501,18 +502,20 @@ void MixtureModelC::main_func() {
         //4. Calculate the log linklihood
     double new_ll = get_LL();
 
+    ll_change = abs(new_ll - old_ll);
+
     double mean_1 = (p_vec[1] * r_vec[1])/(1 - p_vec[1]);
     double mean_2 = (p_vec[2] * r_vec[2])/(1 - p_vec[2]);
+    std::cout.precision(dbl::max_digits10);
     std::cout << "It " << it_count << ", LL val " << new_ll << "\n";
     std::cout << "prior_0: " << prior_vec[0] << ", prior_1: " << 
         prior_vec[1] << ", prior_2: " << prior_vec[2] << "\n";
     std::cout << "p_val_1: " << p_vec[1] << ", p_val_2: " << p_vec[2] << 
         ", r_val_1: " << r_vec[1]  << ", r_val_2: " << r_vec[2] << 
         ", mean_1: " << mean_1 << ", mean_2: " << mean_2 << "\n";
+    std::cout << "ll_change: " << ll_change << "\n";
     
     std::cout << "................\n";
-
-    ll_change = abs(new_ll - old_ll);
     old_ll = new_ll;
 
     } while(ll_change > target_ll_change);
@@ -522,7 +525,6 @@ void MixtureModelC::main_func() {
             ", g_1: " << get_mem_prob(1, n) << ", g_2: " << 
             get_mem_prob(2, n) << "\n";
     }
-
 }
 
 
