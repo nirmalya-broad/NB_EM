@@ -4,7 +4,7 @@ This project is part of the UMI normalization described in the README of [UmiNor
 
 <i>Reads from two different transcripts with the same attached UMI are separated by at least a predefined number of bases.</i>
 
-In the [first version of UMI](https://www.nature.com/articles/s41598-019-55633-6), we used a fixed value of 500 for this gap between reads to infer the transcripts, which we estimated using basic histogram analysis of the read distribution. It provided reasonably accurate UMI normalization.
+In the [first version of UMI](https://github.com/nirmalya-broad/UMINormalize), we used a fixed value of 500 for this gap between reads to infer the transcripts, which we estimated using basic histogram analysis of the read distribution. It provided reasonably accurate UMI normalization.
 
 In this project, we attempt to model the gaps between the reads using a statistical approach. 
 
