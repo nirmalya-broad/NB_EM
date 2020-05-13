@@ -22,8 +22,8 @@ namespace po = boost::program_options;
 // parameters in the p,r format. Later we can convert them to the m,r format
 // as required.
 
-// A. one zero-point density and two negative binomials
-// B. One zero-point density and one negative binomials
+// A. one Dirac point mass and two negative binomials
+// B. One Dirac point mass and one negative binomials
 // C. A single negative binomial
 // D. Hurdle distributions ?
 
@@ -231,7 +231,7 @@ void MixtureModelC::set_mem_prob(double mem_prob, int density_ind,
 
 void MixtureModelC::print_help() {
     std::cout << desc << "\n";
-    std::cout << "Usage: NBinomEM --infile <txt> --outdir <outdir>"
+    std::cout << "Usage: MixtureModel --infile <txt> --outdir <outdir>"
         " --prefix <prefix>  --density_c <density count>"
         "\n\n";
 }

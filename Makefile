@@ -14,9 +14,8 @@ all: clean tools
     
 tools:
 	#$(CC) $(INC) $(STXXLINC) $(CFLAGS)  optimization_ex.cpp -o optimization_ex  $(LIBS) -lpthread -lcblas
-	#$(CC) $(INC) $(STXXLINC) $(CFLAGS)  NBModelTest.cpp -o NBModelTest  $(LIBS) -lpthread -lcblas
+	$(CC) $(INC) $(STXXLINC) $(CFLAGS)  NBModelTest.cpp -o NBModelTest  $(LIBS) -lpthread -lcblas
 	$(CC) $(INC) $(STXXLINC) $(CFLAGS)  MixtureModel.cpp -o MixtureModel  $(LIBS) -lpthread -lcblas
-	#$(CC) $(INC) $(STXXLINC) $(CFLAGS)  NBinomEM.cpp -o NBinomEM  $(LIBS)
     
 clean:
 	rm -f NBinomEM
