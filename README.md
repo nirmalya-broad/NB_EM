@@ -24,4 +24,29 @@ Note that, (1) We initially attempted to use geometric distributions instead of 
 
 ## Method
 
+## Execution
+First the gap file need to be generated from an aligned bam without umi normalization using the command:
+
+    ExtractGaps -h
+      -h [ --help ]            produce help message
+      -i [ --infile ] arg      Infile for the gap data.
+      -o [ --outfile ] arg     Outfile for the gap data.
+      -g [ --gene_strand ] arg Strand of the genome.
+      -s [ --start_pos ] arg   Starting position
+      -e [ --end_pos ] arg     Ending position
+    
+    Usage: ExtractGaps --infile <infile> --outfile <outfile> --gene_strand <gene_strand>  
+        --start_pos <start_pos> --end_pos <end_pos>
+
+Once the gapfile is generated, using the earlier command is generated (the outfile of the earlier command), we use it to fit the mixture model. The command line  for fitting the mixture model is:
+
+    MixtureModel -h
+      -h [ --help ]          produce help message
+      -i [ --infile ] arg    Infile for the gap data.
+      -o [ --outdir ] arg    Output dir.
+      -p [ --prefix ] arg    Prefix str.
+      -d [ --density_c ] arg Density count.
+    
+    Usage: MixtureModel --infile <txt> --outdir <outdir> --prefix <prefix>  --density_c <density count>
+
 
