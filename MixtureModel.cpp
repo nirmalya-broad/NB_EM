@@ -506,6 +506,8 @@ void MixtureModelC::main_func() {
 
     double mean_1 = (p_vec[1] * r_vec[1])/(1 - p_vec[1]);
     double mean_2 = (p_vec[2] * r_vec[2])/(1 - p_vec[2]);
+    
+    
     std::cout.precision(dbl::max_digits10);
     std::cout << "It " << it_count << ", LL val " << new_ll << "\n";
     std::cout << "prior_0: " << prior_vec[0] << ", prior_1: " << 
@@ -514,16 +516,30 @@ void MixtureModelC::main_func() {
         ", r_val_1: " << r_vec[1]  << ", r_val_2: " << r_vec[2] << 
         ", mean_1: " << mean_1 << ", mean_2: " << mean_2 << "\n";
     std::cout << "ll_change: " << ll_change << "\n";
-    
     std::cout << "................\n";
+   
+
     old_ll = new_ll;
 
     } while(ll_change > target_ll_change);
 
+    std::cout << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n";
+    double mean_1 = (p_vec[1] * r_vec[1])/(1 - p_vec[1]);
+    double mean_2 = (p_vec[2] * r_vec[2])/(1 - p_vec[2]);
+    std::cout.precision(dbl::max_digits10);
+    std::cout << "prior_0: " << prior_vec[0] << ", prior_1: " << 
+        prior_vec[1] << ", prior_2: " << prior_vec[2] << "\n";
+    std::cout << "p_val_1: " << p_vec[1] << ", p_val_2: " << p_vec[2] << 
+        ", r_val_1: " << r_vec[1]  << ", r_val_2: " << r_vec[2] << 
+        ", mean_1: " << mean_1 << ", mean_2: " << mean_2 << "\n";
+    std::cout << "................\n";
+
     for (int n = 0; n < sample_vec.size(); n++) {
+        if (sample_vec[n] > 200 && sample_vec[n] < 2000) {
         std::cout << sample_vec[n] << ", g_0: " << get_mem_prob(0, n) <<
             ", g_1: " << get_mem_prob(1, n) << ", g_2: " << 
             get_mem_prob(2, n) << "\n";
+        }
     }
 }
 
