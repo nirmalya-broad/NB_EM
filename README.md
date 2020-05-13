@@ -24,6 +24,8 @@ Note that, (1) We initially attempted to use geometric distributions instead of 
 
 ## Method
 
+We estimate the mixture model by [expectation-maximization]([https://en.wikipedia.org/wiki/Expectation%E2%80%93maximization_algorithm](https://en.wikipedia.org/wiki/Expectation%E2%80%93maximization_algorithm)) (EM) algorithm. Part of the M step however was non-convex and we used [BFGS](https://en.wikipedia.org/wiki/Broyden%E2%80%93Fletcher%E2%80%93Goldfarb%E2%80%93Shanno_algorithm) for it from the [dlib](http://dlib.net/) optimization library.
+
 ## Execution
 First the gap file need to be generated from an aligned bam without umi normalization using the command:
 
