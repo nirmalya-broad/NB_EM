@@ -405,11 +405,11 @@ void MixtureModelC::do_M_step() {
 
     // Get updated r_val for component 1
     
-     const column_vector x_lower1 = {0.00001};
-     const column_vector x_upper1 = {10000};
+    const column_vector x_lower1 = {0.00001};
+    const column_vector x_upper1 = {10000};
 
-     column_vector starting_point1 = {r_vec[1]};
-     find_max_box_constrained(dlib::bfgs_search_strategy(),
+    column_vector starting_point1 = {r_vec[1]};
+    find_max_box_constrained(dlib::bfgs_search_strategy(),
                                      dlib::objective_delta_stop_strategy(1e-6),
                                      value_comp1, gradient_comp1,
                                     starting_point1,
@@ -423,10 +423,10 @@ void MixtureModelC::do_M_step() {
     
     auto value_comp2 = std::bind(&MixtureModelC::CD_LL_value_comp2, this, _1);
     auto gradient_comp2 = std::bind(&MixtureModelC::CD_LL_gradient_comp2, this, _1);
-     const column_vector x_lower2 = {0.00001};
-     const column_vector x_upper2 = {10000};
-     column_vector starting_point2 = {r_vec[2]};
-     find_max_box_constrained(dlib::bfgs_search_strategy(),
+    const column_vector x_lower2 = {0.00001};
+    const column_vector x_upper2 = {10000};
+    column_vector starting_point2 = {r_vec[2]};
+    find_max_box_constrained(dlib::bfgs_search_strategy(),
                                      dlib::objective_delta_stop_strategy(1e-6),
                                      value_comp2, gradient_comp2,
                                     starting_point2,
