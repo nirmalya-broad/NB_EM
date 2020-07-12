@@ -500,26 +500,26 @@ void MixtureModelC::main_func() {
         do_M_step();
 
         //4. Calculate the log linklihood
-    double new_ll = get_LL();
+        double new_ll = get_LL();
 
-    ll_change = abs(new_ll - old_ll);
+        ll_change = abs(new_ll - old_ll);
 
-    double mean_1 = (p_vec[1] * r_vec[1])/(1 - p_vec[1]);
-    double mean_2 = (p_vec[2] * r_vec[2])/(1 - p_vec[2]);
+        double mean_1 = (p_vec[1] * r_vec[1])/(1 - p_vec[1]);
+        double mean_2 = (p_vec[2] * r_vec[2])/(1 - p_vec[2]);
     
     
-    std::cout.precision(dbl::max_digits10);
-    std::cout << "It " << it_count << ", LL val " << new_ll << "\n";
-    std::cout << "prior_0: " << prior_vec[0] << ", prior_1: " << 
+        std::cout.precision(dbl::max_digits10);
+        std::cout << "It " << it_count << ", LL val " << new_ll << "\n";
+        std::cout << "prior_0: " << prior_vec[0] << ", prior_1: " << 
         prior_vec[1] << ", prior_2: " << prior_vec[2] << "\n";
-    std::cout << "p_val_1: " << p_vec[1] << ", p_val_2: " << p_vec[2] << 
-        ", r_val_1: " << r_vec[1]  << ", r_val_2: " << r_vec[2] << 
-        ", mean_1: " << mean_1 << ", mean_2: " << mean_2 << "\n";
-    std::cout << "ll_change: " << ll_change << "\n";
-    std::cout << "................\n";
+        std::cout << "p_val_1: " << p_vec[1] << ", p_val_2: " << p_vec[2] << 
+            ", r_val_1: " << r_vec[1]  << ", r_val_2: " << r_vec[2] << 
+            ", mean_1: " << mean_1 << ", mean_2: " << mean_2 << "\n";
+        std::cout << "ll_change: " << ll_change << "\n";
+        std::cout << "................\n";
    
 
-    old_ll = new_ll;
+        old_ll = new_ll;
 
     } while(ll_change > target_ll_change);
 
